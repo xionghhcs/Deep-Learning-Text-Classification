@@ -8,6 +8,7 @@ text classification datasets, models and experiments
 - python 3.5
 - pandas
 - numpy
+- nltk
 
 ## Datasets
 
@@ -22,13 +23,39 @@ This is a dataset for binary sentiment classification containing substantially m
 [1] http://ai.stanford.edu/~amaas/data/sentiment/
 
 
+### DBpedia
+
+
+### AG News
+
+### TREC
+
+### Sentihood
+
+### SST-2
+
+
+
+### Yelp
+
+#### Introduce
+
+#### Reference
+
+https://www.yelp.com/dataset/challenge
+
 ## Models
 
-In the text classification task,  the most common model is textcnn, textrnn, textcnn + attention and textrnn + attention.
+In the text classification task, the most common model is textcnn, textrnn, textcnn + attention and textrnn + attention, fasttext etc.
 
 ### TextCNN
 
 ![text cnn](./assert/text_cnn_model.png)
+
+
+#### Implement reference
+
+[1] https://github.com/cmasch/cnn-text-classification/blob/master/cnn_model.py
 
 ### TextRNN
 
@@ -43,9 +70,19 @@ In the text classification task,  the most common model is textcnn, textrnn, tex
 
 
 
+## TODO
+
+- add more dataset
+
+- add more model
 
 
 
+## Reference
+
+
+
+http://nlpprogress.com/english/sentiment_analysis.html
 
 
 
