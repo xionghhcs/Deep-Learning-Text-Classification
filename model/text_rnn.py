@@ -9,17 +9,16 @@ except:
     from .basic_model import BasicModel
 
 
-class TextCNN(BasicModel):
-    def __init__(self, matrix=None, maxlen=None, num_classes=2, filter_sizes=[3, 5, 7], filter_num=64,
-                 embed_dropout=0.4, dense_dropout=0.4, lr=0.001, model_path='../tmp/text_cnn'):
-        super(TextCNN, self).__init__()
+class TextRNN(BasicModel):
+    def __init__(self, matrix=None, maxlen=None, num_classes=2, rnn_hidden_units=128,
+                 embed_dropout=0.4, dense_dropout=0.4, lr=0.001, model_path='../tmp/text_rnn'):
+        super(TextRNN, self).__init__()
 
         self.matrix = matrix
         self.maxlen = maxlen
         self.num_classes = num_classes
 
-        self.filter_sizes = filter_sizes
-        self.filter_num = filter_num
+        self.rnn_hidden_units = rnn_hidden_units
         self.embed_dropout = embed_dropout
         self.dense_dropout = dense_dropout
         self.lr = lr
@@ -28,18 +27,17 @@ class TextCNN(BasicModel):
         self.build_model()
         tf_config = tf.ConfigProto()
         tf_config.gpu_options.allow_growth = True
-        self.sess = tf.Session()
+        self.sess = tf.Session(config=tf_config)
         self.sess.run(tf.global_variables_initializer())
         self.saver = tf.train.Saver()
 
     def build_model(self):
-        with tf.variable_scope('inputs'):
-            self.text_input = tf.placeholder(dtype=tf.int32, shape=[None, self.maxlen], name='text_input')
-            self.label_input = tf.placeholder(dtype=tf.int32, shape=[None, ], name='label')
+        self.text_input = tf.placeholder(dtype=tf.int32, shape=[None, self.maxlen], name='text_input')
+        self.label_input = tf.placeholder(dtype=tf.int32, shape=[None, ], name='label')
 
-            self.embed_dropout_input = tf.placeholder(dtype=tf.float32, name='embed_dropout_input')
-            self.dense_dropout_input = tf.placeholder(dtype=tf.float32, name='dense_dropout_input')
-            self.train_flag = tf.placeholder(dtype=tf.bool, name='train_flag')
+        self.embed_dropout_input = tf.placeholder(dtype=tf.float32, name='embed_dropout_input')
+        self.dense_dropout_input = tf.placeholder(dtype=tf.float32, name='dense_dropout_input')
+        self.train_flag = tf.placeholder(dtype=tf.bool, name='train_flag')
 
         with tf.variable_scope('embedding_layer'):
             embedding = tf.get_variable(
@@ -51,19 +49,17 @@ class TextCNN(BasicModel):
             text_embed = tf.nn.embedding_lookup(embedding, self.text_input)
             text_embed = tf.layers.dropout(text_embed, rate=self.embed_dropout_input, training=self.train_flag)
 
-        with tf.variable_scope('cnn_layer'):
-            conv_result = []
-            for filter_size in self.filter_sizes:
-                conv = tf.layers.separable_conv1d(text_embed, filters=self.filter_num, kernel_size=filter_size,
-                                                  depth_multiplier=4, activation=tf.nn.relu)
-                max_pool = tf.reduce_max(conv, axis=1)
-                max_pool = tf.layers.dense(max_pool, units=100, activation=tf.nn.relu)
-                max_pool = tf.layers.dropout(max_pool, rate=self.embed_dropout_input, training=self.train_flag)
-                conv_result.append(max_pool)
+        with tf.variable_scope('rnn_layer'):
+            fw_cell = tf.nn.rnn_cell.BasicLSTMCell(self.rnn_hidden_units)
+            bw_cell = tf.nn.rnn_cell.BasicLSTMCell(self.rnn_hidden_units)
+            output, _ = tf.nn.bidirectional_dynamic_rnn(cell_fw=fw_cell, cell_bw=bw_cell, inputs=text_embed,
+                                                        dtype=tf.float32)
+
+            text_encoded = tf.concat(values=output, axis=-1)
 
         with tf.variable_scope('output_layer'):
-            dense = tf.concat(conv_result, axis=-1)
-            # dense = tf.layers.batch_normalization(dense, training=self.train_flag)
+            dense = tf.concat(values=[tf.reduce_max(text_encoded, axis=1), tf.reduce_mean(text_encoded, axis=1)],
+                              axis=-1)
             dense = tf.layers.dropout(dense, rate=self.dense_dropout_input, training=self.train_flag)
             out_ = tf.layers.dense(dense, units=self.num_classes, activation=None)
 
@@ -162,3 +158,4 @@ class TextCNN(BasicModel):
             result.append(res)
         result = np.concatenate(result, axis=0)
         return result
+
