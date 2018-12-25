@@ -4,7 +4,7 @@ text classification datasets, models and experiments
 
 ## Environment
 
-- tensorflow 1.4.1
+- tensorflow 1.10
 - python 3.5
 - pandas
 - numpy
@@ -22,6 +22,12 @@ This is a dataset for binary sentiment classification containing substantially m
 
 [1] http://ai.stanford.edu/~amaas/data/sentiment/
 
+
+### Movie Review Data(Polarity datasets)
+
+
+
+[1] http://www.cs.cornell.edu/people/pabo/movie-review-data/
 
 ### DBpedia
 
@@ -67,6 +73,18 @@ In the text classification task, the most common model is textcnn, textrnn, text
 ### TextRNN + Attention
 
 
+## Experiment
+
+### TextCNN
+
+
+| Dataset | Training(acc) | Validation(acc) | Test(acc) |
+|---|---|---|---|
+| IMDB | 0.9453 | 0.9052 | 0.9006 |
+
+
+
+
 
 
 
@@ -75,7 +93,6 @@ In the text classification task, the most common model is textcnn, textrnn, text
 - add more dataset
 
 - add more model
-
 
 
 ## Reference
