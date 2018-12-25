@@ -3,16 +3,27 @@ import numpy as np
 import sys
 from sklearn.metrics import f1_score, accuracy_score
 
-from .basic_model import BasicModel
+try:
+    from basic_model import BasicModel
+except:
+    from .basic_model import BasicModel
 
 
 class TextCNN(BasicModel):
-    def __init__(self, matrix=None, maxlen=None, feature_keep_prob=0.6):
+    def __init__(self, matrix=None, maxlen=None, num_classes=2, filter_sizes=[3, 5, 7], filter_num=64,
+                 embed_dropout=0.4, dense_dropout=0.4, lr=0.001, model_path='../tmp/text_cnn'):
         super(TextCNN, self).__init__()
 
         self.matrix = matrix
         self.maxlen = maxlen
-        self.feature_keep_prob = feature_keep_prob
+        self.num_classes = num_classes
+
+        self.filter_sizes = filter_sizes
+        self.filter_num = filter_num
+        self.embed_dropout = embed_dropout
+        self.dense_dropout = dense_dropout
+        self.lr = lr
+        self.model_path = model_path
 
         self.build_model()
         self.sess = tf.Session()
@@ -20,10 +31,13 @@ class TextCNN(BasicModel):
         self.saver = tf.train.Saver()
 
     def build_model(self):
-        self.text_input = tf.placeholder(dtype=tf.int32, shape=[None, self.maxlen], name='text_input')
-        self.label_input = tf.placeholder(dtype=tf.int32, shape=[None, ], name='label')
+        with tf.variable_scope('inputs'):
+            self.text_input = tf.placeholder(dtype=tf.int32, shape=[None, self.maxlen], name='text_input')
+            self.label_input = tf.placeholder(dtype=tf.int32, shape=[None, ], name='label')
 
-        self.feature_keep_prob_input = tf.placeholder(dtype=tf.float32, name='feature_keep_prob')
+            self.embed_dropout_input = tf.placeholder(dtype=tf.float32, name='embed_dropout_input')
+            self.dense_dropout_input = tf.placeholder(dtype=tf.float32, name='dense_dropout_input')
+            self.train_flag = tf.placeholder(dtype=tf.bool, name='train_flag')
 
         with tf.variable_scope('embedding_layer'):
             embedding = tf.get_variable(
@@ -33,31 +47,32 @@ class TextCNN(BasicModel):
                 trainable=False
             )
             text_embed = tf.nn.embedding_lookup(embedding, self.text_input)
+            text_embed = tf.layers.dropout(text_embed, rate=self.embed_dropout_input, training=self.train_flag)
 
         with tf.variable_scope('cnn_layer'):
-            filter_sizes = [3, 5, 7, 9]
-            filters = 64
             conv_result = []
-
-            for filter_size in filter_sizes:
-                conv = tf.layers.conv1d(text_embed, filters=64, kernel_size=filter_size,
-                                        kernel_initializer=tf.truncated_normal_initializer,
-                                        bias_initializer=tf.zeros_initializer, activation=tf.nn.relu)
+            for filter_size in self.filter_sizes:
+                conv = tf.layers.separable_conv1d(text_embed, filters=self.filter_num, kernel_size=filter_size,
+                                                  depth_multiplier=4, activation=tf.nn.relu)
                 max_pool = tf.reduce_max(conv, axis=1)
+                max_pool = tf.layers.dense(max_pool, units=100, activation=tf.nn.relu)
+                max_pool = tf.layers.dropout(max_pool, rate=self.embed_dropout_input, training=self.train_flag)
                 conv_result.append(max_pool)
 
         with tf.variable_scope('output_layer'):
-            feature = tf.concat(conv_result, axis=-1)
-            feature = tf.nn.dropout(feature, keep_prob=self.feature_keep_prob_input)
-            out_ = tf.layers.dense(feature, units=1, activation=tf.nn.sigmoid)
+            dense = tf.concat(conv_result, axis=-1)
+            # dense = tf.layers.batch_normalization(dense, training=self.train_flag)
+            dense = tf.layers.dropout(dense, rate=self.dense_dropout_input, training=self.train_flag)
+            out_ = tf.layers.dense(dense, units=self.num_classes, activation=None)
 
-            labels = tf.cast(self.label_input, tf.float32)
-            labels = tf.expand_dims(labels, axis=-1)
-            self.probs = out_
-            self.loss = tf.losses.log_loss(labels=labels, predictions=out_)
+            self.probs = tf.nn.softmax(out_, dim=-1)
+            self.loss = tf.reduce_mean(
+                tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.label_input, logits=out_))
 
         with tf.variable_scope('train_op'):
-            self.train_op = tf.train.AdamOptimizer(0.01).minimize(self.loss)
+            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+            with tf.control_dependencies(update_ops):
+                self.train_op = tf.train.AdamOptimizer(self.lr).minimize(self.loss)
 
     def next_batch(self, x, y=None, batch_size=64, shuffle=False):
         if shuffle:
@@ -74,30 +89,47 @@ class TextCNN(BasicModel):
             else:
                 yield x_batch
 
-    def fit(self, x, y, batch_size=64, epochs=1, validation_data=None):
+    def fit(self, x, y, batch_size=64, epochs=1, validation_data=None, save_model=False):
+
+        best_metrics = dict()
+        best_metrics['acc'] = 0
+
         for epoch in range(1, epochs + 1):
             print('Epoch {}/{}'.format(epoch, epochs), flush=True)
 
+            t_loss = 0
+            t_acc = 0
+            cnt = 0
             for x_batch, y_batch in self.next_batch(x, y, batch_size=batch_size, shuffle=True):
                 feed_data = {
                     self.text_input: x_batch,
                     self.label_input: y_batch,
-                    self.feature_keep_prob_input: self.feature_keep_prob
+                    self.embed_dropout_input: self.embed_dropout,
+                    self.dense_dropout_input: self.dense_dropout,
+                    self.train_flag: True,
                 }
                 _, loss = self.sess.run([self.train_op, self.loss], feed_dict=feed_data)
                 loss = float(loss)
-                print('\r - loss:{}'.format(loss), end='', flush=True)
+                cnt += 1
+                t_loss += loss
+                metrics = self._evaluate_on_val_data(validation_data=(x_batch, y_batch))
+                t_acc += metrics['acc']
+                print('\r - loss:{:.4f} - acc:{:.4f}'.format(t_loss / cnt, t_acc / cnt), end='', flush=True)
             print()
 
             if validation_data is not None:
                 metrics = self._evaluate_on_val_data(validation_data)
-                print(' - val_acc:{:.4f} - val_f1:{:.4f}'.format(metrics['acc'], metrics['f1']))
+                print(' - val_acc:{:.4f}'.format(metrics['acc']))
+                if save_model:
+                    if best_metrics['acc'] < metrics['acc']:
+                        best_metrics['acc'] = metrics['acc']
+                        self.save_weight(self.model_path)
 
     def _evaluate_on_val_data(self, validation_data):
         metrics = dict()
         val_pred = self.predict(validation_data[0])
         metrics['acc'] = accuracy_score(validation_data[-1], val_pred)
-        metrics['f1'] = f1_score(validation_data[-1], val_pred)
+        # metrics['f1'] = f1_score(validation_data[-1], val_pred)
         return metrics
 
     def predict(self, x, batch_size=64):
@@ -105,20 +137,24 @@ class TextCNN(BasicModel):
         for x_batch in self.next_batch(x, batch_size=batch_size):
             feed_data = {
                 self.text_input: x_batch,
-                self.feature_keep_prob_input: 1.0
+                self.embed_dropout_input: 0.0,
+                self.dense_dropout_input: 0.0,
+                self.train_flag: False
             }
             res = self.sess.run(self.probs, feed_dict=feed_data)
             result.append(res)
         result = np.concatenate(result, axis=0)
-        result = np.where(result > 0.5, 1, 0)
+        result = result.argmax(axis=1)
         return result
 
-    def predict_prob(self, x):
+    def predict_prob(self, x, batch_size=64):
         result = []
         for x_batch in self.next_batch(x, batch_size=batch_size):
             feed_data = {
                 self.text_input: x_batch,
-                self.feature_keep_prob_input: 1.0
+                self.embed_dropout_input: 0.0,
+                self.dense_dropout_input: 0.0,
+                self.train_flag: False
             }
             res = self.sess.run(self.probs, feed_dict=feed_data)
             result.append(res)
