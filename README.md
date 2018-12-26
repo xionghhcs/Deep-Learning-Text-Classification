@@ -12,6 +12,14 @@ text classification datasets, models and experiments
 
 ## Datasets
 
+### Overview
+
+|Dataset| Introduction|
+|---|---|
+|IDBM|       |
+|AG News|    |
+
+
 ### IMDB
 
 This is a dataset for binary sentiment classification containing substantially more data than previous benchmark datasets. We provide a set of 25,000 highly polar movie reviews for training, and 25,000 for testing. There is additional unlabeled data for use as well. Raw text and already processed bag of words formats are provided. See the README file contained in the release for more details.
@@ -29,11 +37,13 @@ This dataset is a sentence level movie review dataset which consist of 5331 posi
 
 sentence polarity dataset v1.0
 
-related url:
+Related url:
 
 [1] http://www.cs.cornell.edu/people/pabo/movie-review-data/
 
-### DBpedia
+### DBpedia ontology
+
+40,000 training samples and 5,000 testing samples from 14 nonoverlapping classes from DBpedia 2014. For each class, there are 40,000 training samples and 5,000 testing samples.
 
 
 ### AG News
@@ -50,7 +60,12 @@ related url:
 
 ### TREC
 
+
+
+
 ### Sentihood
+
+
 
 ### SST-2
 
@@ -58,11 +73,16 @@ related url:
 
 ### Yelp
 
-#### Introduce
 
-#### Reference
+Related url:
 
-https://www.yelp.com/dataset/challenge
+[1] https://www.yelp.com/dataset/challenge
+
+### TODO 
+
+
+add dataset : Yahoo answers、Amazon reviews.
+
 
 ## Models
 
@@ -80,11 +100,23 @@ In the text classification task, the most common model is textcnn, textrnn, text
 
 
 
-### TextCNN + Attention
+### LSTM_GRNN
 
 
-### TextRNN + Attention
+![lstm_grnn](./assert/lstm_grnn_model.png)
 
+
+[1] Duyu Tang .etc, "Document Modeling with Gated Recurrent Neural Network for Sentiment Classification." ACL'2015
+
+
+### HAN
+
+![](./assert/han_model.png)
+
+
+Related paper:
+
+[1] Zichao Yang .etc, "Hierarchical Attention Networks for Document Classification." 
 
 ## Experiment
 
