@@ -1,10 +1,13 @@
-# text_classification
+# Deep Learning Text Classification
 
-text classification datasets, models and experiments
+Text classification is a fundamental task in Natual Language Processing. The goal of text classification is to assign labels to text. Traditional approaches of text classification attempt to map text into a fixed vector, such as tfidf, and then classify it to one class or more than one.
+
+In this repository, I focus on deep learning methods in text classification field. Deep learning method, such as CNN, LSTM, MemNN, .etc , have been broadly used in text representataion learning. 
+
 
 ## Environment
 
-- tensorflow 1.10
+- tensorflow 1.12.0
 - python 3.5
 - pandas
 - numpy
@@ -24,7 +27,7 @@ text classification datasets, models and experiments
 
 This is a dataset for binary sentiment classification containing substantially more data than previous benchmark datasets. We provide a set of 25,000 highly polar movie reviews for training, and 25,000 for testing. There is additional unlabeled data for use as well. Raw text and already processed bag of words formats are provided. See the README file contained in the release for more details.
 
-related url:
+Related url:
 
 [1] http://ai.stanford.edu/~amaas/data/sentiment/
 
@@ -45,6 +48,9 @@ Related url:
 
 40,000 training samples and 5,000 testing samples from 14 nonoverlapping classes from DBpedia 2014. For each class, there are 40,000 training samples and 5,000 testing samples.
 
+Related url:
+
+[1] 
 
 ### AG News
 
@@ -111,12 +117,20 @@ In the text classification task, the most common model is textcnn, textrnn, text
 
 ### HAN
 
-![](./assert/han_model.png)
-
+![han](./assert/han_model.png)
 
 Related paper:
 
 [1] Zichao Yang .etc, "Hierarchical Attention Networks for Document Classification." 
+
+
+### RCNN
+
+![rcnn](./assert/rcnn_model.png)
+
+Implement reference：
+
+[1] https://github.com/roomylee/rcnn-text-classification
 
 ## Experiment
 
@@ -144,8 +158,11 @@ Related paper:
 ## Reference
 
 
+[1] http://nlpprogress.com/english/sentiment_analysis.html
 
-http://nlpprogress.com/english/sentiment_analysis.html
+[2] https://www.jiqizhixin.com/articles/2018-10-23-6 
 
+[3]
 
+[4] 
 
