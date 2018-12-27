@@ -2,7 +2,7 @@
 
 Text classification is a fundamental task in Natual Language Processing. The goal of text classification is to assign labels to text. Traditional approaches of text classification attempt to map text into a fixed vector, such as tfidf, and then classify it to one class or more than one.
 
-In this repository, I focus on deep learning methods in text classification field. Deep learning method, such as CNN, LSTM, MemNN, .etc , have been broadly used in text representataion learning. 
+In this repository, I focus on deep learning methods in text classification field. Deep learning method, such as CNN, LSTM, MemNN, .etc , have been broadly used in text representatation learning. We can finally classify text according to the representation. 
 
 
 ## Environment
