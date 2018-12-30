@@ -32,7 +32,7 @@ Related url:
 [1] http://ai.stanford.edu/~amaas/data/sentiment/
 
 
-### rt-polarity 
+### Rt-polarity 
 
 This dataset is a sentence level movie review dataset which consist of 5331 positive sentences and 5331 negivate sentences. It was introduced in Pang/Lee ACL 2005. Released July 2005.
 
@@ -58,7 +58,7 @@ AG News is a news articles dataset which collected from more than 2000 news sour
 
 I download this dataset from fast.ai for my experiemnt.
 
-related url:
+Related url:
 
 [1] https://course.fast.ai/datasets.html
 
@@ -132,6 +132,31 @@ Implement reference：
 
 [1] https://github.com/roomylee/rcnn-text-classification
 
+
+### Dynamic Memory Network
+
+
+
+### Transformer's Encoder
+
+Transformer is proposed by google in the paper of "Attention is all you need".In this text classification task, we only use the encoder of Transformer to learn a text representation.
+
+![](./assert/transformer.png)
+
+Implement reference:
+
+[1] https://github.com/Lsdefine/attention-is-all-you-need-keras
+
+### Google Universal Sentence Encoder
+
+
+
+
+### BERT
+
+
+
+
 ## Experiment
 
 ### TextCNN
@@ -153,7 +178,6 @@ Implement reference：
 - add more dataset
 
 - add more model
-
 
 ## Reference
 
