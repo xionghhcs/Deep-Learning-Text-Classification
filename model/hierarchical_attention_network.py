@@ -11,7 +11,7 @@ except:
 
 class HAN(BasicModel):
     def __init__(self, matrix, sentences_per_doc, words_per_sentences, num_classes=2, lr=0.001, dense_dropout=0.5,
-                 sent_rnn_units=128, doc_rnn_units=128, model_path='../tmp/lstm_grnn'):
+                 sent_rnn_dropout=0.2, sent_rnn_units=128, doc_rnn_units=128, model_path='../tmp/lstm_grnn'):
         super(HAN, self).__init__()
 
         self.matrix = matrix
@@ -21,6 +21,7 @@ class HAN(BasicModel):
 
         self.embed_dropout = 0.3
         self.dense_dropout = dense_dropout
+        self.sent_rnn_dropout = sent_rnn_dropout
         self.lr = lr
         self.sent_rnn_units = sent_rnn_units
         self.doc_rnn_units = doc_rnn_units
@@ -79,14 +80,13 @@ class HAN(BasicModel):
 
         u = tf.layers.dense(u, units=1)
 
-        alpha = tf.nn.softmax(u, axis=-1)
+        alpha = tf.nn.softmax(u, axis=1)
 
         output = in_tensor * alpha
 
         output = tf.reduce_sum(output, axis=1)
 
         return output
-
 
     def _sentence_composition(self, text_embed):
         sentences = tf.split(text_embed, self.sentences_per_doc, axis=1)
@@ -97,7 +97,10 @@ class HAN(BasicModel):
         for idx, s in enumerate(sentences):
             with tf.variable_scope('sentence_compositon_{}'.format(idx)):
                 fw_cell = tf.nn.rnn_cell.GRUCell(self.sent_rnn_units)
+                fw_cell = tf.nn.rnn_cell.DropoutWrapper(fw_cell, output_keep_prob=1 - self.sent_rnn_dropout)
+
                 bw_cell = tf.nn.rnn_cell.GRUCell(self.sent_rnn_units)
+                bw_cell = tf.nn.rnn_cell.DropoutWrapper(bw_cell, output_keep_prob=1 - self.sent_rnn_dropout)
 
                 output, _ = tf.nn.bidirectional_dynamic_rnn(cell_fw=fw_cell, cell_bw=bw_cell, inputs=s,
                                                             dtype=tf.float32)
