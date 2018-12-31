@@ -31,6 +31,7 @@ class Transformer(object):
             self.text_input = tf.placeholder(dtype=tf.int32, shape=[None, self.maxlen], name='text_input')
             self.label_input = tf.placeholder(dtype=tf.int32, shape=[None, ], name='label_input')
 
+            self.attn_dropout_input = tf.placeholder_with_default(0.0, shape=(), name='attn_dropout_input')
             self.train_flag = tf.placeholder(dtype=tf.bool)
 
         with tf.variable_scope('pos_seq'):
@@ -90,20 +91,22 @@ class Transformer(object):
 
         for idx in range(layers):
             with tf.variable_scope('encoder_layer_{}'.format(idx)):
-                x, attn = self._encoder_layer(x, self.d_model, self.d_inner_hid, self.n_head, self.d_k, self.d_v, mask)
+                x, attn = self._encoder_layer(x, self.d_model, self.d_inner_hid, self.n_head, self.d_k, self.d_v,
+                                              dropout=self.attn_dropout_input, mask=mask)
                 if return_attn:
                     atts.append(attn)
 
         return (x, atts) if return_attn else x
 
     def _encoder_layer(self, x, d_model, d_inner_hid, n_head, d_k, d_v, dropout=0.1, mask=None):
+
         output, attn = self._multihead_attention(x, x, x, d_model, n_head, d_k, d_v, dropout, mask)
 
-        output = self._feedforward(output, d_model, d_inner_hid)
+        output = self._feedforward(output, d_model, d_inner_hid, dropout=dropout)
 
         return output, attn
 
-    def _multihead_attention(self, q, k, v, d_model, n_head, d_k, d_v, dropout=0.1, mask=None):
+    def _multihead_attention(self, q, k, v, d_model, n_head, d_k, d_v, dropout=0.1, mask=None, use_layer_norm=True):
         def reshape1(x):
             s = tf.shape(x)
             x = tf.reshape(x, [s[0], s[1], n_head, d_k])
@@ -129,21 +132,29 @@ class Transformer(object):
         if mask is not None:
             mask = tf.tile(mask, multiples=[n_head, 1, 1])
 
-        head, attn = self._scale_dot_product_attention(qs, ks, vs, mask, d_model, )
+        head, attn = self._scale_dot_product_attention(qs, ks, vs, mask, d_model, dropout)
 
         head = reshape2(head)
 
+        # in order to feed the output to the next layer, the output shape must be the same as input shape
         output = tf.layers.dense(head, units=d_model)
 
         output = tf.layers.dropout(output, rate=dropout)
 
+        if not use_layer_norm: return output, attn
+
+        with tf.variable_scope('multihead_attention'):
+            output = self._layer_normalization(output)
+
         return output, attn
 
-    def _feedforward(self, x, d_hid, d_inner_hid, dropout=0.1):
+    def _feedforward(self, x, d_model, d_inner_hid, dropout=0.1):
         output = tf.layers.conv1d(x, d_inner_hid, 1, activation=tf.nn.relu)
-        output = tf.layers.conv1d(output, d_hid, 1)
-        output = tf.layers.dropout(output, rate=dropout)
+        output = tf.layers.conv1d(output, d_model, 1)
+        output = tf.layers.dropout(output, rate=dropout, training=self.train_flag)
         output = tf.add(output, x)
+        with tf.variable_scope('feedforward'):
+            output = self._layer_normalization(output)
         return output
 
     def _scale_dot_product_attention(self, q, k, v, mask, d_model, attn_dropout=0.1):
@@ -156,7 +167,7 @@ class Transformer(object):
             attn = tf.add(attn, mask)
 
         attn = tf.nn.softmax(attn)
-        attn = tf.layers.dropout(attn, rate=attn_dropout)
+        attn = tf.layers.dropout(attn, rate=attn_dropout, training=self.train_flag)
         output = tf.matmul(attn, v)
 
         return output, attn
@@ -165,8 +176,8 @@ class Transformer(object):
         mean, var = tf.nn.moments(x, axes=[2], keep_dims=True)
         std = tf.sqrt(var)
 
-        gamma = tf.get_variable(name='gamma', shape=tf.shape(x).as_list()[-1:])
-        beta = tf.get_variable(name='beta', shape=tf.shape(x).as_list()[-1:])
+        gamma = tf.get_variable(name='gamma', shape=x.shape.as_list()[-1:])
+        beta = tf.get_variable(name='beta', shape=x.shape.as_list()[-1:])
         return gamma * (x - mean) / (std + eps) + beta
 
     def _get_pos_embedding_matrix(self, max_len, embed_dim):
@@ -209,8 +220,7 @@ class Transformer(object):
                 feed_data = {
                     self.text_input: x_batch,
                     self.label_input: y_batch,
-                    # self.embed_dropout_input: self.embed_dropout,
-                    # self.dense_dropout_input: self.dense_dropout,
+                    self.attn_dropout_input: 0.1,
                     self.train_flag: True,
                 }
                 _, loss = self.sess.run([self.train_op, self.loss], feed_dict=feed_data)
@@ -242,8 +252,6 @@ class Transformer(object):
         for x_batch in self.next_batch(x, batch_size=batch_size):
             feed_data = {
                 self.text_input: x_batch,
-                # self.embed_dropout_input: 0.0,
-                # self.dense_dropout_input: 0.0,
                 self.train_flag: False
             }
             res = self.sess.run(self.probs, feed_dict=feed_data)
@@ -257,21 +265,9 @@ class Transformer(object):
         for x_batch in self.next_batch(x, batch_size=batch_size):
             feed_data = {
                 self.text_input: x_batch,
-                # self.embed_dropout_input: 0.0,
-                # self.dense_dropout_input: 0.0,
                 self.train_flag: False
             }
             res = self.sess.run(self.probs, feed_dict=feed_data)
             result.append(res)
         result = np.concatenate(result, axis=0)
         return result
-
-
-matrix = np.random.random((1000, 256))
-
-x = np.random.randint(0, 5, (1000, 10))
-y = np.random.randint(0, 2, (1000,))
-
-model = Transformer(matrix=matrix, maxlen=10)
-
-model.fit(x, y)
