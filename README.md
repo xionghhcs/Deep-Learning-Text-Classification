@@ -132,10 +132,19 @@ Implement reference：
 
 [1] https://github.com/roomylee/rcnn-text-classification
 
-
 ### Dynamic Memory Network
 
+![dynamic memory network](./assert/dynamic_memory_network.png)
 
+
+### Char-Level Convolutional Network
+
+
+![](./assert/char-level-conv-net.png)
+
+### VDCNN
+
+![](./assert/vdcnn.png)
 
 ### Transformer's Encoder
 
