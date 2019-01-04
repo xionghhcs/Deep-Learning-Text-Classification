@@ -105,6 +105,10 @@ In the text classification task, the most common model is textcnn, textrnn, text
 ### TextRNN
 
 
+### Fasttext
+
+![](./assert/fasttext.png)
+
 
 ### LSTM_GRNN
 
@@ -113,7 +117,6 @@ In the text classification task, the most common model is textcnn, textrnn, text
 
 
 [1] Duyu Tang .etc, "Document Modeling with Gated Recurrent Neural Network for Sentiment Classification." ACL'2015
-
 
 ### HAN
 
