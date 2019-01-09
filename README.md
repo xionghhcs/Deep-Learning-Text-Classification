@@ -87,6 +87,10 @@ Implement reference:
 
 ![tmn](./assert/tmn.png)
 
+### TextGCN
+
+![](./assert/text_gcn.png)
+
 ## Reference
 
 
