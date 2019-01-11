@@ -1,8 +1,8 @@
 # Deep Learning Text Classification
 
-Text classification is a fundamental task in Natual Language Processing. The goal of text classification is to assign labels to text. Traditional approaches of text classification attempt to map text into a fixed vector, such as tfidf, and then classify it to one class or more than one.
+Text classification is a fundamental task in Natural Language Processing. The goal of text classification is to assign labels to text. Traditional approaches of text classification attempt to map text into a fixed vector, such as tfidf, and then classify it to one class or more than one.
 
-In this repository, I focus on deep learning methods in text classification field. Deep learning method, such as CNN, LSTM, MemNN, .etc , have been broadly used in text representatation learning. We can finally classify text according to the representation. 
+In this repository, I focus on deep learning methods in text classification field. Deep learning method, such as CNN, LSTM, MemNN, etc, have been broadly used in text representatation learning. We can finally classify text according to the representation. 
 
 
 ## Environment
@@ -13,9 +13,11 @@ In this repository, I focus on deep learning methods in text classification fiel
 - numpy
 - nltk
 
-## Models
+## Introduce
 
-In the text classification task, the most common model is textcnn, textrnn, textcnn + attention and textrnn + attention, fasttext etc.
+Text classification technology can be roughly divided into two categories, traditional text classification and deep learning text classification. Traditional text classification mainly focus on feature engineering. The text will be represented as a sparse vector like bag-of-word or n-gram and then feed into machine learning classifiers such as lr, svm and so on. For deep learning methods, the models will be train in an end-to-end way. The text feature will be extract by the neural network automatically. Researchers have designed many neural networks for text classification task like TextCNN, HAN, memory network, TMN, etc. Sometimes, we can use the seq2seq framework's encoder part to encode the text. This repository reimplement some deep learning text classification models based on my own understanding.
+
+## Models
 
 ### TextCNN
 
