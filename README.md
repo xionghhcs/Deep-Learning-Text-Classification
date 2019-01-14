@@ -13,7 +13,7 @@ In this repository, I focus on deep learning methods in text classification fiel
 - numpy
 - nltk
 
-## Introduce
+## Introduction
 
 Text classification technology can be roughly divided into two categories, traditional text classification and deep learning text classification. Traditional text classification mainly focus on feature engineering. The text will be represented as a sparse vector like bag-of-word or n-gram and then feed into machine learning classifiers such as lr, svm and so on. For deep learning methods, the models will be train in an end-to-end way. The text feature will be extract by the neural network automatically. Researchers have designed many neural networks for text classification task like TextCNN, HAN, memory network, TMN, etc. Sometimes, we can use the seq2seq framework's encoder part to encode the text. This repository reimplement some deep learning text classification models based on my own understanding.
 
@@ -92,6 +92,14 @@ Implement reference:
 ### TextGCN
 
 ![](./assert/text_gcn.png)
+
+### Bi-BloSAN
+
+![](./assert/Bi-BloSAN.jpg)
+
+## Paper list
+
+
 
 ## Reference
 
