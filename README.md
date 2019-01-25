@@ -99,16 +99,39 @@ Implement reference:
 
 ## Paper list
 
+[1] Convolutional Neural Networks for Sentence Classification
+
+[2] Character-level Convolutional Networks for Text Classification
+
+[3] Document Modeling with Gated Recurrent Neural Network for Sentiment Classificaton
+
+[4] Hierarchical Attention Networks for Document Classification
+
+[5] Ask Me Anything: Dynamic Memory Networks for Natural Language Processing
+
+[6] Bag of Tricks for Efficient Text Classification
+
+[7] Very Deep Convolutional Networks for Text Classification
+
+[8] Attention is all your need
+
+[9] Topic Memory Networks for Short Text Classification
+
+[10] Graph Convolutional Neural Networks for Text Classification
+
+[11] Bi-Directional Block Self-Attention for Fast and Memory-Efficient Sequence Modeling
+
+[12] 
+
 
 
 ## Reference
-
 
 [1] http://nlpprogress.com/english/sentiment_analysis.html
 
 [2] https://www.jiqizhixin.com/articles/2018-10-23-6 
 
-[3]
+[3]  
 
 [4] 
 
