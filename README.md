@@ -72,6 +72,10 @@ Implement reference：
 
 ![](./assert/vdcnn.png)
 
+### DPCNN
+
+![](./assert/dpcnn.png)
+
 ### Transformer's Encoder
 
 Transformer is proposed by google in the paper of "Attention is all you need".In this text classification task, we only use the encoder of Transformer to learn a text representation.
@@ -121,7 +125,9 @@ Implement reference:
 
 [11] Bi-Directional Block Self-Attention for Fast and Memory-Efficient Sequence Modeling
 
-[12] 
+[12] Deep Pyramid Convolutional Neural Networks for Text Categorization
+
+[13] 
 
 
 
